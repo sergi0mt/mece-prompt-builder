@@ -57,7 +57,7 @@ export default function ResearchHandoffPage() {
   }, [projectId]);
 
   const charCount = prompt.length;
-  const overLimit = charCount > 2000;
+  const overLimit = charCount > 8000;
 
   const handleCopy = async () => {
     if (!prompt) return;
@@ -182,7 +182,7 @@ export default function ResearchHandoffPage() {
               <div className="mt-8 mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Chip size="xs" tone={overLimit ? "warn" : "ghost"}>
-                    {charCount} / 2000 chars
+                    {charCount.toLocaleString()} / 8,000 chars
                   </Chip>
                   {serverTruncated && (
                     <Chip size="xs" tone="warn">

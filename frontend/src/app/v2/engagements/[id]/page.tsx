@@ -459,11 +459,14 @@ function IssueTree({ branches, activeIdx }: { branches: RawBranch[]; activeIdx: 
     );
   }
 
+  // Auto-fit grid: 3 cols when ≤3 branches, otherwise wrap into 2 cols on wider counts
+  const cols = branches.length <= 3 ? "grid-cols-3" : "grid-cols-2 lg:grid-cols-3";
+
   return (
-    <div className="grid grid-cols-3 gap-3.5">
-      {branches.slice(0, 3).map((b, i) => {
+    <div className={`grid ${cols} gap-3.5`}>
+      {branches.map((b, i) => {
         const isActive = i === activeIdx;
-        const id = String.fromCharCode(65 + i);
+        const id = branchLetter(i);
         const subs = (b.evidence || b.evidence_needed || "").split(/[,;]\s*/).filter(Boolean).slice(0, 3);
         return (
           <div
@@ -522,6 +525,18 @@ function IssueTree({ branches, activeIdx }: { branches: RawBranch[]; activeIdx: 
 // ────────────────────────────────────────────────────────────────
 // Helpers
 // ────────────────────────────────────────────────────────────────
+
+/** A, B, ... Z, AA, AB, ... — same as the backend handoff_builder. */
+function branchLetter(idx: number): string {
+  let s = "";
+  let n = idx;
+  while (true) {
+    s = String.fromCharCode(65 + (n % 26)) + s;
+    n = Math.floor(n / 26) - 1;
+    if (n < 0) break;
+  }
+  return s;
+}
 
 function parseBranches(raw: unknown): RawBranch[] {
   if (Array.isArray(raw)) return raw as RawBranch[];

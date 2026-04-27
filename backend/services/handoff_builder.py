@@ -8,14 +8,21 @@ from __future__ import annotations
 import json
 import re
 
-_MAX_CHARS = 2000
+# Soft warning threshold (frontend uses this for the "long prompt" badge).
+# No hard cap — the prompt is always returned in full.
+_SOFT_WARN_CHARS = 8000
 
 
 def build_handoff_prompt(stage_data: dict, project_name: str) -> tuple[str, bool]:
     """
     Build a markdown research brief from stage_data collected in Stage 1+2.
 
-    Returns (prompt_str, truncated_bool).
+    No server-side truncation: the full prompt is always returned. The frontend
+    shows the char count and a soft warning past _SOFT_WARN_CHARS so the user
+    can decide whether to trim the textarea before pasting into deepresearch.
+
+    Returns (prompt_str, truncated_bool). The truncated flag is kept for
+    backward compatibility but is always False.
     """
     central_question = stage_data.get("central_question", "")
     audience = stage_data.get("audience", "client")
@@ -24,36 +31,13 @@ def build_handoff_prompt(stage_data: dict, project_name: str) -> tuple[str, bool
     complication = stage_data.get("complication", "")
     language = _resolve_language(stage_data.get("language", stage_data.get("output_language", "")))
 
-    branches = _parse_branches(stage_data.get("branches", ""))[:3]
+    branches = _parse_branches(stage_data.get("branches", ""))
 
     head = _render_head(project_name, central_question, audience, desired_decision, situation, complication)
-    tail = _render_tail(language)
-
-    # First attempt: full detail (sub-questions + full evidence)
     body = _render_branches(branches, include_sub_questions=True, max_evidence_chars=None)
+    tail = _render_tail(language)
     prompt = f"{head}\n\n{body}\n\n{tail}"
-    if len(prompt) <= _MAX_CHARS:
-        return prompt, False
-
-    # Shrink #1: drop sub-questions
-    body = _render_branches(branches, include_sub_questions=False, max_evidence_chars=None)
-    prompt = f"{head}\n\n{body}\n\n{tail}"
-    if len(prompt) <= _MAX_CHARS:
-        return prompt, True
-
-    # Shrink #2: cap evidence text
-    fixed = len(head) + len(tail) + len("\n\n") * 2
-    per_branch_budget = max(80, (_MAX_CHARS - fixed) // max(1, len(branches)) - 80)
-    body = _render_branches(branches, include_sub_questions=False, max_evidence_chars=per_branch_budget)
-    prompt = f"{head}\n\n{body}\n\n{tail}"
-    if len(prompt) <= _MAX_CHARS:
-        return prompt, True
-
-    # Last resort: hard truncate body, keep head + tail
-    body_max = _MAX_CHARS - fixed - 50  # 50 chars for ellipsis note
-    body = body[:body_max].rsplit("\n", 1)[0] + "\n…(detail trimmed to fit)"
-    prompt = f"{head}\n\n{body}\n\n{tail}"
-    return prompt, True
+    return prompt, False
 
 
 def _render_head(project_name: str, central_question: str, audience: str,
@@ -76,10 +60,11 @@ def _render_head(project_name: str, central_question: str, audience: str,
 
 def _render_branches(branches: list[dict], include_sub_questions: bool,
                        max_evidence_chars: int | None) -> str:
-    lines: list[str] = ["## MECE structure — investigate these 3 branches", ""]
-    letters = ["A", "B", "C"]
+    n = len(branches)
+    header = f"## MECE structure — investigate these {n} branches" if n != 1 else "## MECE structure — investigate this branch"
+    lines: list[str] = [header, ""]
     for i, branch in enumerate(branches):
-        letter = letters[i] if i < len(letters) else str(i + 1)
+        letter = _branch_letter(i)
         question = branch.get("question", f"Branch {letter}")
         evidence = branch.get("evidence") or branch.get("evidence_needed", "")
         so_what = branch.get("so_what", "")
@@ -109,6 +94,18 @@ def _render_tail(language: str) -> str:
         f"- **Language:** {language}",
         "- **Quality bar:** Tier-1 sources only (official institutions, top-tier consultancies, peer-reviewed academic). No blogs, no Wikipedia.",
     ])
+
+
+def _branch_letter(idx: int) -> str:
+    """A, B, ... Z, AA, AB, ... — Excel-style column labels."""
+    s = ""
+    n = idx
+    while True:
+        s = chr(ord("A") + n % 26) + s
+        n = n // 26 - 1
+        if n < 0:
+            break
+    return s
 
 
 def _parse_branches(raw) -> list[dict]:

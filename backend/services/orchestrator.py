@@ -275,9 +275,11 @@ Audience: {audience} | Deck type: {deck_type}
 </context>
 
 <objective>
-Build a MECE issue tree that decomposes the central question into 3 testable branches, each with evidence and a "so what" implication. Formulate an initial hypothesis (the "answer first").
+Build a MECE issue tree that decomposes the central question into testable branches, each with evidence and a "so what" implication. Formulate an initial hypothesis (the "answer first").
 
-After Stage 2 is complete, the user will generate a deepresearch prompt to conduct deep research on each branch. Make the branches specific and researchable.
+Default to **3 branches** (the McKinsey norm — easier to remember, easier to defend). Use **4–5 branches** only when the central question genuinely doesn't fit in 3 MECE buckets, or when the user explicitly asks for more. If the user requests N branches, deliver N — they own the structure.
+
+After Stage 2 is complete, the user will generate a deepresearch prompt to conduct deep research on each branch. Make every branch specific and researchable.
 </objective>
 
 <suggested_template>
@@ -285,12 +287,12 @@ After Stage 2 is complete, the user will generate a deepresearch prompt to condu
 </suggested_template>
 {stage2_additions}
 <instructions>
-1. Present the MECE template with 3 branches adapted to the user's specific context
+1. Present the MECE template with branches adapted to the user's specific context (default 3, up to 5 if requested or required)
 2. For each branch, cite specific evidence from sources using [N] or [Web N] citations
 3. State the initial hypothesis -- this becomes the governing thought of the analysis
-4. Output the confirmed structure as JSON at the END of your message — do NOT wait for a separate confirmation message. The user can request changes.
+4. Output the confirmed structure as JSON at the END of your message — do NOT wait for a separate confirmation message. The user can request changes (including "give me more branches" / "merge branches").
 
-CRITICAL: Always include the JSON block with "confirmed": true in your FIRST response in this stage. Do not ask "do you approve?" and wait. Present the structure AND the JSON together.
+CRITICAL: Always include the JSON block with "confirmed": true in your FIRST response in this stage. Present the structure AND the JSON together. The JSON `branches` array must include EVERY branch you described in prose — do not output 5 in the text and only 3 in the JSON.
 
 ```json
 {{"mece_template": "{template}", "hypothesis": "...", "branches": [{{"question": "...", "evidence": "...", "so_what": "..."}}], "confirmed": true}}

@@ -750,8 +750,15 @@ export default function StructurePage() {
 // ────────────────────────────────────────────────────────────────
 
 function buildBranches(rawBranches: RawBranch[]): Branch[] {
-  return rawBranches.slice(0, 3).map((b, idx) => {
-    const id = String.fromCharCode(65 + idx); // A, B, C
+  return rawBranches.map((b, idx) => {
+    // A, B, ... Z, AA, AB, ... (Excel-style)
+    let id = "";
+    let n = idx;
+    while (true) {
+      id = String.fromCharCode(65 + (n % 26)) + id;
+      n = Math.floor(n / 26) - 1;
+      if (n < 0) break;
+    }
     const title = b.question || `Branch ${id}`;
     // Map sub-questions if backend included them, otherwise synthesize from evidence text
     const subQs: string[] =
