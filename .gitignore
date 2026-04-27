@@ -18,6 +18,9 @@ node_modules/
 frontend/.next/
 frontend/node_modules/
 
+# TS incremental build cache
+*.tsbuildinfo
+
 # Database
 backend/data/*.db
 backend/data/*.db-journal

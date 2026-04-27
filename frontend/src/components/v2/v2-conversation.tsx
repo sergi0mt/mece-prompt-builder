@@ -473,11 +473,9 @@ function StreamingBubble({ status, text }: { status: ChatStatus; text: string })
             <Loader2 className="h-3 w-3 animate-spin" strokeWidth={1.5} />
             {status === "researching"
               ? "Running research agent…"
-              : status === "refining"
-                ? "Self-refining…"
-                : status === "sending"
-                  ? "Sending…"
-                  : "Thinking…"}
+              : status === "sending"
+                ? "Sending…"
+                : "Thinking…"}
           </div>
         )}
         {text && (
