@@ -1,0 +1,168 @@
+/* ──────────────────────────────────────────────────────────────────
+ * V2 Design Tokens — Engagement Manager redesign
+ * Scoped to `.v2-theme` so the original app at `/` is unaffected.
+ * Spec: design_handoff_engagement_manager/README.md
+ * ──────────────────────────────────────────────────────────────────*/
+
+.v2-theme {
+  /* Light mode (primary) */
+  --bg: #FAF8F3;
+  --paper: #FFFDF7;
+  --ink: #1A1A1A;
+  --ink-2: #3D3D3D;
+  --ink-3: #6B6B6B;
+  --ink-4: #9A9A9A;
+  --line: #E8E2D5;
+  --line-2: #D4CCB8;
+
+  /* Accent (tweakable) */
+  --accent: oklch(60% 0.14 25);  /* warm coral default */
+  --accent-soft: color-mix(in oklch, var(--accent) 12%, var(--paper));
+
+  --success: #2B7A3E;
+  --warn: #B8730E;
+  --danger: #B53A2A;
+
+  /* Typography */
+  --serif: 'Instrument Serif', 'Times New Roman', Georgia, serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', 'Menlo', Consolas, monospace;
+
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark mode toggle */
+.v2-theme[data-theme="dark"] {
+  --bg: #1A1814;
+  --paper: #221F1A;
+  --ink: #F5F1E8;
+  --ink-2: #C9C3B5;
+  --ink-3: #8F897C;
+  --ink-4: #5C5749;
+  --line: #2E2A22;
+  --line-2: #3D372C;
+  --accent-soft: color-mix(in oklch, var(--accent) 18%, var(--paper));
+}
+
+/* ── Typography helpers ───────────────────────────────────────── */
+
+.v2-theme .v2-serif { font-family: var(--serif); font-weight: 400; }
+.v2-theme .v2-sans  { font-family: var(--sans); }
+.v2-theme .v2-mono  { font-family: var(--mono); }
+
+/* Display (page titles, hero) */
+.v2-theme .v2-display {
+  font-family: var(--serif);
+  font-size: 64px;
+  line-height: 1.02;
+  letter-spacing: -1.5px;
+  font-weight: 400;
+}
+
+/* H1 (page title) */
+.v2-theme .v2-h1 {
+  font-family: var(--serif);
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: -0.8px;
+  font-weight: 400;
+}
+
+/* H2 (section header) */
+.v2-theme .v2-h2 {
+  font-family: var(--serif);
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  font-weight: 400;
+}
+
+/* H3 (card title) */
+.v2-theme .v2-h3 {
+  font-family: var(--serif);
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+  font-weight: 400;
+}
+
+/* Mono kicker label (uppercase metadata) */
+.v2-theme .v2-kicker {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.v2-theme .v2-kicker-sm {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+/* ── Surfaces ──────────────────────────────────────────────────── */
+
+.v2-theme .v2-paper {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.v2-theme .v2-paper-strong {
+  background: var(--paper);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+}
+
+.v2-theme .v2-ink-bg {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* ── Hairline divider ─────────────────────────────────────────── */
+
+.v2-theme .v2-hairline { border-color: var(--line); }
+.v2-theme .v2-hairline-strong { border-color: var(--line-2); }
+
+/* ── Inputs ────────────────────────────────────────────────────── */
+
+.v2-theme textarea,
+.v2-theme input[type="text"],
+.v2-theme input[type="email"],
+.v2-theme input[type="search"] {
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.v2-theme textarea:focus,
+.v2-theme input:focus {
+  border-color: var(--ink-3);
+}
+
+/* ── Cursor / selection / focus ─────────────────────────────── */
+
+.v2-theme button:focus-visible,
+.v2-theme a:focus-visible {
+  outline: 2px solid color-mix(in oklch, var(--accent) 50%, transparent);
+  outline-offset: 2px;
+}
+
+.v2-theme ::selection {
+  background: color-mix(in oklch, var(--accent) 25%, transparent);
+}
