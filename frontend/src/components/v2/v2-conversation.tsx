@@ -146,9 +146,12 @@ export function V2Conversation({
 }) {
   const chat = useV2Chat(projectId);
   const [input, setInput] = useState("");
-  const [useWebSearch, setUseWebSearch] = useState(true);
+  // Default OFF: this app builds structure, not data. The deep-research run
+  // downstream is much better at fetching evidence. Toggle is opt-in for
+  // edge cases (the user wants the AI to verify a market exists, etc.).
+  const [useWebSearch, setUseWebSearch] = useState(false);
   const [autoRefine, setAutoRefine] = useState(false);
-  const [depth, setDepth] = useState("detailed");
+  const [depth, setDepth] = useState("standard");
   const [latestModel, setLatestModel] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -305,7 +308,10 @@ export function V2Conversation({
       >
         {!compactControls && (
           <div className="mb-2 flex items-center gap-3" style={{ fontSize: 11, color: "var(--ink-3)" }}>
-            <label className="flex cursor-pointer items-center gap-1.5">
+            <label
+              className="flex cursor-pointer items-center gap-1.5"
+              title="Off por default: este step define ESTRUCTURA. La investigación profunda con datos reales la hace deepresearch después. Solo activá esto si necesitás que el AI verifique algo puntual (ej. confirmar que un mercado existe)."
+            >
               <input
                 type="checkbox"
                 checked={useWebSearch}
@@ -314,6 +320,11 @@ export function V2Conversation({
               />
               <Globe className="h-3 w-3" strokeWidth={1.5} />
               Web Search
+              {useWebSearch && (
+                <span style={{ fontSize: 10, color: "var(--warn)", marginLeft: 4 }}>
+                  ⚠ better in deepresearch
+                </span>
+              )}
             </label>
             <label className="flex cursor-pointer items-center gap-1.5">
               <input
