@@ -16,5 +16,6 @@ RUN pip install --no-cache-dir -r backend/requirements.txt
 # pdf_ingestion needs PyMuPDF which is in requirements.txt)
 COPY . /app
 
-# Railway injects $PORT at runtime. The shell form lets bash expand it.
-CMD uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000} --timeout-keep-alive 120
+# Railway injects $PORT at runtime. Use exec form with sh -c so the
+# variable is expanded by the shell, not passed as the literal string.
+CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000} --timeout-keep-alive 120"]
