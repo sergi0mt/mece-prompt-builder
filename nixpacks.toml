@@ -1,0 +1,12 @@
+# Nixpacks config for the BACKEND service.
+#
+# Without "providers", Nixpacks auto-detects the repo as Node because of
+# frontend/package.json and skips Python. Forcing Python via providers
+# brings in the interpreter, but the default Python provider does not
+# put pip on the PATH and ensurepip on Python 3.12 fails inside Nix.
+# So we explicitly add pip via nixPkgs.
+
+providers = ["python"]
+
+[phases.setup]
+nixPkgs = ["python3", "python3Packages.pip"]
