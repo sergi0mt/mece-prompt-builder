@@ -10,8 +10,11 @@
 #   6. On the frontend service, set NEXT_PUBLIC_API_URL to the backend public URL + /api/v1.
 
 [build]
-builder = "NIXPACKS"
-buildCommand = "python -m pip install --break-system-packages -r backend/requirements.txt"
+# Switched from NIXPACKS to DOCKERFILE because the Python provider in
+# nixpacks has been broken since 2026-04-28 (pip not on python's sys.path).
+# The Dockerfile at repo root is deterministic and self-contained.
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "uvicorn backend.main:app --host 0.0.0.0 --port $PORT --timeout-keep-alive 120"
