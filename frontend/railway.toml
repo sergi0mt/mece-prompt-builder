@@ -8,11 +8,13 @@
 # The variable is baked into the JS bundle, so changing it requires a redeploy.
 
 [build]
-builder = "NIXPACKS"
-buildCommand = "npm ci && npm run build"
+# Switched from NIXPACKS to DOCKERFILE: nixpacks defaults to Node v18,
+# but Next.js 16 requires Node 20.9+, and the npm cache layer hits EBUSY.
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "npm run start -- --hostname 0.0.0.0 --port $PORT"
+startCommand = "sh -c 'npm run start -- --hostname 0.0.0.0 --port ${PORT:-3000}'"
 healthcheckPath = "/v2"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
