@@ -579,7 +579,7 @@ function InteractiveOptions({
         >
           Pick a quick reply
         </p>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-col gap-1.5">
           {options.map((opt, i) => (
             <button
               key={i}
@@ -588,20 +588,20 @@ function InteractiveOptions({
               title={opt}
               style={{
                 fontSize: 11.5,
-                padding: "5px 12px",
+                padding: "7px 14px",
                 border: "1px solid var(--line)",
-                borderRadius: 999,
+                borderRadius: 14,
                 background: "var(--paper)",
                 color: "var(--ink-2)",
                 fontFamily: "var(--sans)",
-                lineHeight: 1.3,
-                maxWidth: 280,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
+                lineHeight: 1.4,
+                width: "100%",
+                whiteSpace: "normal",
+                wordBreak: "break-word",
+                textAlign: "left",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 8,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = "var(--ink)";

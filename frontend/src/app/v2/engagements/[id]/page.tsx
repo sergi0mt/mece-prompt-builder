@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft, Check, Edit3, Loader2, FileSearch, ArrowRight,
@@ -72,6 +72,64 @@ export default function WorkspacePage() {
   const activeStage = Math.max(1, Math.min(2, session?.current_stage ?? 1));
   const meceReady = (data?.branches?.length ?? 0) >= 1;
 
+  // ── Resizable splitter: canvas (left) vs conversation (right) ────
+  // Width is the chat panel size in px. Persisted in localStorage.
+  const CHAT_MIN = 320;
+  const CHAT_MAX = 900;
+  const CHAT_DEFAULT = 420;
+  const SPLIT_KEY = "mpb:workspace-chat-width";
+
+  const [chatWidth, setChatWidth] = useState<number>(CHAT_DEFAULT);
+  const splitRef = useRef<HTMLDivElement | null>(null);
+  const draggingRef = useRef(false);
+
+  // Hydrate from localStorage on mount (client only, avoids SSR hydration mismatch)
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(SPLIT_KEY);
+      if (raw) {
+        const n = parseInt(raw, 10);
+        if (Number.isFinite(n)) setChatWidth(clamp(n, CHAT_MIN, CHAT_MAX));
+      }
+    } catch {
+      /* localStorage may be blocked; ignore */
+    }
+  }, []);
+
+  const onDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    draggingRef.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }, []);
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!draggingRef.current || !splitRef.current) return;
+      const rect = splitRef.current.getBoundingClientRect();
+      // Chat width = distance from cursor to the right edge of the container
+      const next = clamp(rect.right - e.clientX, CHAT_MIN, CHAT_MAX);
+      setChatWidth(next);
+    };
+    const onUp = () => {
+      if (!draggingRef.current) return;
+      draggingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      try {
+        window.localStorage.setItem(SPLIT_KEY, String(chatWidth));
+      } catch {
+        /* ignore */
+      }
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, [chatWidth]);
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center" style={{ color: "var(--ink-3)" }}>
@@ -121,24 +179,68 @@ export default function WorkspacePage() {
       {/* ── Big stage stepper (2 stages) ─────────────────── */}
       <BigStepper active={activeStage} projectId={projectId} />
 
-      {/* ── 2-column body: canvas + assistant ────────────── */}
-      <div className="grid flex-1 overflow-hidden" style={{ gridTemplateColumns: "1fr 420px", minHeight: 0 }}>
+      {/* ── 2-column body: canvas + draggable splitter + assistant ── */}
+      <div
+        ref={splitRef}
+        className="grid flex-1 overflow-hidden"
+        style={{
+          // Three-column grid: canvas | 6px handle | chat panel
+          gridTemplateColumns: `minmax(0, 1fr) 6px ${chatWidth}px`,
+          minHeight: 0,
+        }}
+      >
         <StoryCanvas
           data={data}
           activeStage={activeStage}
           projectId={projectId}
           meceReady={meceReady}
         />
+
+        {/* Drag handle */}
         <div
-          className="flex min-h-0 flex-col border-l"
-          style={{ borderColor: "var(--line)" }}
-        >
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize conversation panel"
+          onMouseDown={onDragStart}
+          onDoubleClick={() => {
+            setChatWidth(CHAT_DEFAULT);
+            try { window.localStorage.setItem(SPLIT_KEY, String(CHAT_DEFAULT)); } catch {}
+          }}
+          title="Drag to resize · double-click to reset"
+          className="v2-split-handle"
+        />
+
+        <div className="flex min-h-0 flex-col" style={{ borderLeft: "1px solid var(--line)" }}>
           <V2Conversation projectId={projectId} />
         </div>
       </div>
 
       {/* Inline button styles (scoped to .v2-theme) */}
       <style jsx>{`
+        :global(.v2-theme .v2-split-handle) {
+          cursor: col-resize;
+          background: transparent;
+          position: relative;
+          transition: background 0.15s ease;
+        }
+        :global(.v2-theme .v2-split-handle::before) {
+          /* Thin vertical line in the middle of the handle */
+          content: "";
+          position: absolute;
+          left: 50%;
+          top: 0;
+          bottom: 0;
+          width: 1px;
+          transform: translateX(-50%);
+          background: var(--line);
+        }
+        :global(.v2-theme .v2-split-handle:hover) {
+          background: color-mix(in oklch, var(--accent) 15%, transparent);
+        }
+        :global(.v2-theme .v2-split-handle:hover::before) {
+          background: var(--accent);
+          width: 2px;
+        }
         :global(.v2-theme .v2-ghost-btn) {
           background: transparent;
           color: var(--ink-2);
@@ -525,6 +627,11 @@ function IssueTree({ branches, activeIdx }: { branches: RawBranch[]; activeIdx: 
 // ────────────────────────────────────────────────────────────────
 // Helpers
 // ────────────────────────────────────────────────────────────────
+
+/** Clamp a number into [min, max]. Used by the resizable splitter. */
+function clamp(n: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, n));
+}
 
 /** A, B, ... Z, AA, AB, ... — same as the backend handoff_builder. */
 function branchLetter(idx: number): string {
